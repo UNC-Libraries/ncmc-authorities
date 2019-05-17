@@ -1,3 +1,3 @@
-module NcmcAuthorities
-  VERSION = "0.1.0"
+module NCMCAuthorities
+  VERSION = "0.1.0.pre"
 end
