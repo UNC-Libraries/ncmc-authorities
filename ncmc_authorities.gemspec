@@ -34,5 +34,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
 
+  spec.add_runtime_dependency 'activesupport', '~> 5.2'
+  spec.add_runtime_dependency 'amatch', '~> 0.4.0'
+  spec.add_runtime_dependency 'text', '~> 1.3.1'
+  spec.add_runtime_dependency 'trigram'
   spec.add_runtime_dependency 'thor', '~> 0.20.0'
+  spec.add_runtime_dependency 'tf-idf-similarity'
+  spec.add_runtime_dependency 'narray'
 end
