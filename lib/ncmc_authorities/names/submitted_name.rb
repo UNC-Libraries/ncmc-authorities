@@ -52,7 +52,7 @@ module NCMCAuthorities
         @lc_reconciled = true unless (@lcnaf_string.nil? || @lcnaf_string.empty?)
         @clustered = false
 
-        clusters if @type == 'personal'
+        clusters
       end
 
       def inspect

@@ -4,6 +4,9 @@ load 'lib/ncmc_authorities.rb'
 # get all names with little/no deduping
 allnames = NCMCAuthorities::Import::SubmittedNameGetter.new
 
+# count of names by type
+allnames.names.group_by { |n| n.type }.map { |k, v| [k, v.length]}.to_h
+
 # limit to personal names
 personal = allnames.personal_names
 personal.count
@@ -48,6 +51,7 @@ end
 
 # write test results for personal names with matches
 test_results(personal)
+
 exit
 
 # personal names with strong matches
