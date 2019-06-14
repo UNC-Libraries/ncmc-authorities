@@ -36,6 +36,8 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'activesupport', '~> 5.2'
   spec.add_runtime_dependency 'amatch', '~> 0.4.0'
+  spec.add_runtime_dependency 'rspec', '~> 3.0'
+  spec.add_runtime_dependency 'rsolr', '~> 2.2.1'
   spec.add_runtime_dependency 'text', '~> 1.3.1'
   spec.add_runtime_dependency 'trigram'
   spec.add_runtime_dependency 'thor', '~> 0.20.0'

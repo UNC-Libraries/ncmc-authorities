@@ -41,7 +41,7 @@ At the moment we generate a composite similarity score based on weightings of:
 Notes:
 - We don't yet do anything with dates
 - We don't yet do anything special with variant/clarifying names
-- Anything mononymic (Aristotle) or not in inverted "LastName, Forenames" form (Pat Brown) isn't parsed well; approx everything is treated as a surname. At some point we should see how many of these there are and how their matching is doing.
+- Anything mononymic (Aristotle) or not in inverted "LastName, Forenames" form (Pat Brown) isn't parsed well; approx everything is treated as a surname. At some point we should see how many of these there are and how their matching is doing. I'm unsure whether any non-inverted personal names exist.
 
 ### Corporate
 
@@ -54,5 +54,35 @@ Then, for a name, we only check for matches with other members of its cluster(s)
 
 At the moment we generate a "composite" similarity score based on:
  - trigram similarity weighted by term frequency-inverse document frequency (so trigrams that are common in the corpus count less than rare trigrams)
+
+### Family
+
+Normalize names (including removal of: "family", "of", "the")
+
+Clustered by soundex of any name token:
+		- "Smith-Brown Family" is clustered as both ```soundex(Smith)``` and ```soundex(Brown)```
+
+Then, for a name, we only check for matches with other members of its cluster(s), using only
+levenshtein similarity.
+
+### Meeting
+
+Handled in the same way as corporate names. (This not meant to imply that meeting names are also clustered or compared with corporate names.)
+
+### Unknown
+
+Names with unknown type are clustered with and compared against names of each of the other, determinate, types. This also means that names of the determinate types are also compared against unknown-type names (along with names of their own type).
+
+When comparing an unknown-type name against an unknown-type name, they end up being compared
+as each of the types: personal names, corporate names, etc.; we take the best of those comparisons.
+
+An example in case this is not clear:
+	unknown_names = ['Smith, Brewster', 'Smith Brewing']
+	personal_names = ['Smith, Pat']
+	corporate_names = ['Smith Brewing Co']
+
+
+
+
 
 

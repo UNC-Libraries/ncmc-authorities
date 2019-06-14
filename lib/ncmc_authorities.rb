@@ -13,7 +13,12 @@ module NCMCAuthorities
   autoload :CommandLine, 'ncmc_authorities/command_line'
   autoload :LCNAF, 'ncmc_authorities/lcnaf'
 
+  require_relative 'ncmc_authorities/solr.rb'
+  require_relative 'ncmc_authorities/trigram.rb'
+
   require_relative 'ncmc_authorities/matching'
   require_relative 'ncmc_authorities/names'
+
   require_relative 'ncmc_authorities/import'
+  require_relative 'ncmc_authorities/export'
 end

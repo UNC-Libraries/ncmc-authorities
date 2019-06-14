@@ -56,6 +56,7 @@ module NCMCAuthorities
         name.jarowinkler_similar(other_name)
       end
 
+      # This is not tf-idf comparison
       def self.trigram(name, other_name)
         Trigram.compare(name, other_name)
       end

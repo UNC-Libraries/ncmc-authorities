@@ -13,6 +13,20 @@ module NCMCAuthorities
           expect(NCMCAuthorities::Names::SubmittedName.new(name: name_string)).
             to eq(name)
         end
+
+        it 'cleans name_type values' do
+          name = NCMCAuthorities::Names::SubmittedName.new(name: name_string,
+                                                           name_type: 'person')
+          expect(name.type).to eq('personal')
+        end
+
+        describe '.clean_name_type' do
+          it 'is not case sensitive' do
+            name = NCMCAuthorities::Names::SubmittedName.new(name: name_string,
+              name_type: 'Person')
+            expect(name.type).to eq('personal')
+          end
+        end
       end
     end
   end
