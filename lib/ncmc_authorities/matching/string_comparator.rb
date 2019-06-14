@@ -10,7 +10,7 @@ module NCMCAuthorities
           if limited_methods.empty?
             %w[sellers levenshtein damerau_levenshtein hamming
                pair_distance longest_subsequence longest_substring
-               jaro jaro_winkler trigram].map(&:to_sym)
+               jaro jaro_winkler trigram forename_tokens].map(&:to_sym)
           else
             limited_methods.uniq
           end
@@ -61,7 +61,7 @@ module NCMCAuthorities
         Trigram.compare(name, other_name)
       end
 
-      def self.blah_tokens(name, other_name)
+      def self.forename_tokens(name, other_name)
         names = name.split(' ')
         other_names = other_name.split(' ')
 
@@ -110,24 +110,6 @@ module NCMCAuthorities
         else
           matched * (0.3 ** (shorter.length + shorter.count { |x| x.length > 1 })) * penalty_mult
         end
-      end
-
-      def self.blah_initials(name, other_name)
-        whatever_value = 0.9
-        return whatever_value unless name && other_name
-        return whatever_value if name.empty? || other_name.empty?
-
-        names = name.split(' ')
-        other_names = other_name.split(' ')
-        nscore = names.map do |n|
-          [other_names.map { |o| jaro_winkler(n, o)},
-          other_names.include?(n.chr) ? 0.9 : 0].flatten.max
-        end.reduce(:+) / names.length.to_f
-        oscore = other_names.map do |o|
-          [names.map { |n| jaro_winkler(o, n)},
-          names.include?(o.chr) ? 0.9 : 0].flatten.max
-        end.reduce(:+) / other_names.length.to_f
-        [nscore, oscore].max
       end
     end
   end

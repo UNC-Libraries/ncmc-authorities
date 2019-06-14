@@ -66,6 +66,10 @@ strong = personal.reject { |p| p.strong_matches.empty? }
 strong.count
 personal.count
 
+# View clustering
+hsh = NCMCAuthorities::Names::Personal.cluster_hash
+hsh.map { |k, v| [k, v.members.length] }.to_a.sort_by { |x| x[1] }
+
 
 # Family names
 test_results(allnames.family_names)
@@ -130,5 +134,3 @@ names.select { |n| n.ranking&.first&.category == :strong }.count
 # Normalized name forms that cluster multiple submitted names
 names.reduce(0) { |sum, n| sum + n.unique_name_form_percent }
 
-hsh = NCMCAuthorities::Names::Corporate.cluster_hash
-hsh.map { |k, v| [k, v.members.length] }.to_a.sort_by { |x| x[1] }

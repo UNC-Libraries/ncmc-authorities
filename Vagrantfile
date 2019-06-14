@@ -94,11 +94,4 @@ Vagrant.configure("2") do |config|
                 'echo "source /opt/rh/rh-ruby24/enable" >> ' \
                 '/home/vagrant/.bash_profile'
   config.vm.provision :shell, privileged: false, inline: $source_scl
-
-  # deploy TRLN-Discovery-ETL
-  $script = <<~SCRIPT
-    cp /vagrant/.vagrant/machines/thats_so_mebane/virtualbox/private_key /home/vagrant/.ssh/id_rsa
-    chmod 600 /home/vagrant/.ssh/id_rsa
-  SCRIPT
-  config.vm.provision :shell, privileged: false, inline: $script
 end

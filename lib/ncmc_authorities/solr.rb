@@ -1,14 +1,5 @@
 require 'rsolr'
 
-
-
-=begin
-solr start -e cloud
-solr create_collection -c corporate
-solr delete -c corporate
-=end
-
-
 module NCMCAuthorities
   module NCMCSolr
     BASEURL = 'http://127.0.0.1:9983/solr/'
@@ -61,8 +52,6 @@ module NCMCAuthorities
     end
 
     class SolrMatchResponse
-      attr_reader :response
-
       def initialize(response, doc_id)
         @response = response
         @doc_id = doc_id

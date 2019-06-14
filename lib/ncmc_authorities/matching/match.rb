@@ -65,42 +65,24 @@ module NCMCAuthorities
         send(:"#{name_type}_score", name, other_name)
       end
 
+      # Corporate names have a score from solr assigned to the match
       def self.corporate_score(name, other_name)
-        #s = meeting_score(name, other_name)
-        #puts other_name.name
-        #puts s.first
-        #return s
-
-        score = name.trigram_similarity(other_name)
-        #score = Matching::StringComparator.compare(name.norm_name, other_name.norm_name, :trigram)[:trigram]
-        score = 0.0 if score.nan?
-
-        [score, nil]
+        return
       end
+
+      # Meeting names have a score from solr assigned to the match
+      def self.meeting_score(name, other_name)
+        corporate_score(name, other_name)
+      end
+
 
       def self.family_score(name, other_name)
         Matching::StringComparator.compare(name.basename, other_name.basename, :levenshtein)[:levenshtein]
       end
 
-      def self.meeting_score(name, other_name)
-        #corporate_score(name, other_name)
-        [cosine_similarity(name.tfidf, name.l2_norm,
-                          other_name.tfidf, other_name.l2_norm),
-         nil]
-      end
-
-      def self.cosine_similarity(tfidf1, norm1, tfidf2, norm2)
-        sum, i, size = 0, 0, tfidf1.size
-        while i < size
-          sum += tfidf1[i] * tfidf2[i]
-          i += 1
-        end
-        sum.to_f / (norm1 * norm2)
-      end
-
       def self.personal_score(name, other_name)
         surname = Matching::StringComparator.compare(name.surname, other_name.surname, :levenshtein)
-        forename = Matching::StringComparator.compare(name.forename, other_name.forename, :levenshtein, :blah_tokens)
+        forename = Matching::StringComparator.compare(name.forename, other_name.forename, :levenshtein, :forename_tokens)
         #initials = Matching::StringComparator.compare(name.initials, other_name.initials, :jaro_winkler)
         supplemental = Matching::StringComparator.compare(name.supplemental, other_name.supplemental, :trigram)
         #dates = 0
@@ -108,7 +90,7 @@ module NCMCAuthorities
         factors = [
           ['surname levenshtein', surname[:levenshtein], 1.5, 5],
           ['forename levenshtein', forename[:levenshtein], 1, 1],
-          ['forename whatever', forename[:blah_tokens], 1, 4],
+          ['forename tokens', forename[:forename_tokens], 1, 4],
           ['supplemental',
            supplemental[:trigram].nan? ? 0.0 : supplemental[:trigram], 1, 1]
         ]
