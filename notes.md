@@ -3,15 +3,10 @@
 
 ### Types
 
-6/6/19: {"corporate"=>13266, "personal"=>107797, "family"=>632,
-         "unknown"=>6477, "meeting"=>79, "person"=>379}
-
-- ("person" should be rolled into "personal")
-- we currently only trying to match names of the same type; for a personal name we only try to find matches with other personal names
-- at some point we'll have to do something with unknown-type names
+{"corporate"=>13266, "personal"=>108176, "family"=>632,
+ "unknown"=>6477, "meeting"=>79}
 - some names are obviously miscategorized, but a legitimate stance could be that those mistakes should be cleaned up in the underlying data and not something we need to mitigate or account for
 - I'm unsure of whether there is any large scale miscategorization; for example if some institution or collection used "personal" in place of "family" name for every family name
-- There are few enough meeting/family names that they seem low priority. I'd guess we'll be able to treat meeting names like we do corporate names, and do something quick/simple for family names and think that's good enough for now.
 
 ## Matching
 
@@ -55,6 +50,8 @@ Then, for a name, we only check for matches with other members of its cluster(s)
 At the moment we generate a "composite" similarity score based on:
  - trigram similarity weighted by term frequency-inverse document frequency (so trigrams that are common in the corpus count less than rare trigrams)
 
+This is done using default lucene scoring, which might include factors such as document length in the score. The scores lucene yields are normalized based on the lucene score of the original document which is an exact match.
+
 ### Family
 
 Normalize names (including removal of: "family", "of", "the")
@@ -75,14 +72,5 @@ Names with unknown type are clustered with and compared against names of each of
 
 When comparing an unknown-type name against an unknown-type name, they end up being compared
 as each of the types: personal names, corporate names, etc.; we take the best of those comparisons.
-
-An example in case this is not clear:
-	unknown_names = ['Smith, Brewster', 'Smith Brewing']
-	personal_names = ['Smith, Pat']
-	corporate_names = ['Smith Brewing Co']
-
-
-
-
 
 
