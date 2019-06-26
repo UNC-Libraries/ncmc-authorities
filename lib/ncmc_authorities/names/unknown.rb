@@ -15,7 +15,7 @@ module NCMCAuthorities
           child.extend UnknownParent
           child.parent_name = self
         end
-        typed_name_children.each { |child| child.clusters }
+        typed_name_children.each { |child| child.blocks }
       end
 
       def typed_name_children(*args)
@@ -32,14 +32,15 @@ module NCMCAuthorities
 
         acc = []
         [@personal, @corporate, @family, @meeting].each do |type_name|
-          acc += Matching::Match.rank(type_name, type_name.clusters.map { |x| x.members.to_a }.flatten)
+          acc += type_name.ranking
+          type_name.clear_ranking
         end
 
         @ranking = acc.sort_by { |m| [CATEGORY_RANKS[m.category], -m.score] }.
                        uniq { |m| m.other_name.respond_to?(:parent_name) ? m.other_name.parent_name : m.other_name }
       end
 
-      def self.cluster(*args)
+      def self.block(*args)
         # covered by initialization
       end
     end

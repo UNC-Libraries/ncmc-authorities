@@ -2,6 +2,7 @@
 
 require 'active_support/inflector'
 require 'pp'
+require 'set'
 
 module NCMCAuthorities
   module Names
@@ -30,14 +31,14 @@ module NCMCAuthorities
       #  - name of source file
       #  - count of source file row
       def initialize(nh, file = nil, ct = nil)
-        #@hsh = nh
+        @hsh = nh
         @name = nh[:name]
         @norm_name = normalized_name
         @type = SubmittedName.clean_name_type(nh[:name_type].to_s)
-        @variants = nh[:variants].split(';;;').map { |v| v.strip } if nh[:variants]
+        @variants = nh[:variants]&.split(';;;')&.map { |v| v.strip } unless nh[:variants]&.empty?
         @relator = nh[:role_or_relator]
-        @lcnaf_string = nh[:lcnaf_string]
-        @lcnaf_uri = nh[:lcnaf_uri]
+        @lcnaf_string = nh[:lcnaf_string] unless nh[:lcnaf_string]&.empty?
+        @lcnaf_uri = nh[:lcnaf_uri] unless nh[:lcnaf_uri]&.empty?
         @institution = nh[:institution]&.upcase
         @source_system = nh[:source_system]&.downcase
         @source_system_full = "#{@institution}-#{@source_system}"
@@ -50,11 +51,11 @@ module NCMCAuthorities
         @source_file = file
         @name_id = "#{file}#{ct}"
         @lc_reconciled = false
-        @lc_reconciled = true unless (@lcnaf_uri.nil? || @lcnaf_uri.empty?)
-        @lc_reconciled = true unless (@lcnaf_string.nil? || @lcnaf_string.empty?)
+        @lc_reconciled = true unless @lcnaf_uri.nil?
+        @lc_reconciled = true unless @lcnaf_string.nil?
 
-        @clustered = false
-        cluster
+        @blocked = false
+        block
       end
 
       def inspect
@@ -93,15 +94,28 @@ module NCMCAuthorities
         self.class.normalize_name(@name)
       end
 
-      def clusters_keys; end
+      # Returns the id portion of the recorded lcnaf_uri
+      #
+      # http://id.loc.gov/authorities/names/n79076730  => n79076730
+      # http://id.loc.gov/authorities/names/no95010424 => no95010424
+      # http://lccn.loc.gov/n86040153                  => n86040153
+      #
+      # will be nil for invalid lcnaf_uri's such as:
+      #   http://id.loc.gov/authorities/names
+      #   Mullins, Isla May, 1859-1936
+      def lcnaf_id
+        lcnaf_uri&.match(/(?:gov|names)\/(n[^\/]*)/)&.captures&.first
+      end
 
-      def clusters
-        return unless @clustered
-        cluster_keys.map { |k| self.class.cluster_hash[k] }
+      def block_keys; end
+
+      def blocks
+        return unless @blocked
+        block_keys.map { |k| self.class.block_hash[k] }
       end
 
       def ranking
-        @ranking ||= Matching::Match.rank(self, clusters.map { |x| x.members.to_a }.flatten)
+        @ranking ||= Match.rank(self, blocks.map { |x| x.members.to_a }.flatten)
       end
 
       def clear_ranking
@@ -121,7 +135,7 @@ module NCMCAuthorities
       #   e.g. Smith, Pat A => Smith, Pat Alex
       #   e.g. Smith, Pat => Smith, Pat
       def strong_matches
-        matches(:strong)
+        @strong_matches ||= matches(:strong)
       end
 
       # names that match moderately well with sufficient info to support it, and
@@ -158,6 +172,20 @@ module NCMCAuthorities
       # n is the number of [strong] matches.
       def unique_name_form_percent
         1.0 / (strong_matches.length + 1)
+      end
+
+      # For name A with strong matches of, say, only B and C: If B and C are both strong
+      # matches with (and only with) A and each other, A B and C together form
+      # one hard cluster. For such clusters, this returns 1/n where n are the
+      # number of members of the cluster.
+      def hard_cluster_percent
+        cluster = Set.new(strong_matches.map(&:other_name) + [self])
+        return 0.0 if strong_matches.find do |m|
+          cluster != Set.new(m.other_name.strong_matches.map(&:other_name) +
+                             [m.other_name])
+        end
+
+        1.0 / cluster.length
       end
 
       private
@@ -209,10 +237,12 @@ module NCMCAuthorities
         end
       end
 
-      def cluster
-        self.class.cluster(self)
-        @clustered = true
+      def block
+        self.class.block(self)
+        @blocked = true
       end
+
+      def self.block(*args); end
     end
   end
 end

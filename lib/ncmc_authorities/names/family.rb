@@ -1,7 +1,6 @@
 module NCMCAuthorities
   module Names
     class Family < SubmittedName
-
       def initialize(*args)
         super
         @type = 'family'
@@ -15,23 +14,24 @@ module NCMCAuthorities
         basename.split(' ')
       end
 
-      def cluster_keys
-        self.class.cluster_keys(word_tokens)
+      def block_keys
+        self.class.block_keys(word_tokens)
       end
 
-      def self.cluster_keys(word_tokens)
+      def self.block_keys(word_tokens)
         word_tokens.map { |n| Text::Soundex.soundex(n) }
       end
 
-      def self.cluster(submitted_name)
-        clusts = cluster_keys(submitted_name.word_tokens).
-                 map { |sdx| cluster_hash[sdx] || cluster_hash.add(sdx) }
+      # add name to a block of similar names
+      def self.block(submitted_name)
+        clusts = block_keys(submitted_name.word_tokens).
+                 map { |sdx| block_hash[sdx] || block_hash.add(sdx) }
         clusts.each { |c| c.members << submitted_name unless c.members.include? submitted_name }
         nil
       end
 
-      def self.cluster_hash
-        @cluster_hash ||= ClusterHash.new
+      def self.block_hash
+        @block_hash ||= BlockHash.new
       end
 
       def self.normalize_name(name)
@@ -46,4 +46,3 @@ module NCMCAuthorities
     end
   end
 end
-

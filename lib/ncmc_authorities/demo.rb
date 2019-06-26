@@ -4,6 +4,11 @@ load 'lib/ncmc_authorities.rb'
 # get all names with little/no deduping
 allnames = NCMCAuthorities::Import::SubmittedNameGetter.new
 
+d = allnames.names.select { |n| n.lcnaf_id }
+d = allnames.names.select { |n| n.type == 'personal'  && !n.dates.empty? }
+d = allnames.names.select { |n| n.type == 'personal'  && !n.variant_forename.empty? }
+
+
 # count of names by type
 allnames.names.group_by { |n| n.type }.map { |k, v| [k, v.length]}.to_h
 
@@ -11,52 +16,18 @@ allnames.names.group_by { |n| n.type }.map { |k, v| [k, v.length]}.to_h
 personal = allnames.personal_names
 personal.count
 
+# you can also import only personal names by
+#   personal = NCMCAuthorities::Import::SubmittedNameGetter.new(type_limit: 'personal').names
+
 pname = personal.first
-c = pname.clusters.first
+c = pname.blocks.first
 
 # see matches that qualify as "strong" according to the criteria
 #   in SubmittedName.strong_matches
 pname.strong_matches
 
-def test_results(names)
-  type = names.first.type
-  File.open("test_results_#{type}.txt", 'w') do |ofile|
-    names.each do |pname|
-      strong = pname.strong_matches
-      moderate = pname.moderate_matches
-      weak = pname.weak_matches
-      if (strong + moderate + weak).empty?
-        pname.clear_ranking
-        next
-      end
-
-      ofile << "#{pname.name}\n"
-      ofile << "Strong:\n" if strong
-      strong.each do |match|
-        ofile << "\t#{match.other_name}\t#{match.score}\n"
-      end
-      ofile << "Moderate:\n" if moderate
-      moderate.each do |match|
-        ofile << "\t#{match.other_name}\t#{match.score}\n"
-      end
-      ofile << "Weak:\n" if weak
-      weak.each do |match|
-        ofile << "\t#{match.other_name}\t#{match.score}\n"
-      end
-      ofile << "\n\n"
-
-      pname.clear_ranking
-    end
-  end
-end
-
 # write test results for personal names with matches
-test_results(personal)
-
-exit
-
-# you can also import only personal names by
-personal = NCMCAuthorities::Import::SubmittedNameGetter.new(type_limit: 'personal').names
+NCMCAuthorities::Export.export_matches('personal')
 
 # personal names with strong matches
 strong = personal.reject { |p| p.strong_matches.empty? }
@@ -66,14 +37,12 @@ strong = personal.reject { |p| p.strong_matches.empty? }
 strong.count
 personal.count
 
-# View clustering
-hsh = NCMCAuthorities::Names::Personal.cluster_hash
+# View blocking
+hsh = NCMCAuthorities::Names::Personal.block_hash
 hsh.map { |k, v| [k, v.members.length] }.to_a.sort_by { |x| x[1] }
 
-
 # Family names
-test_results(allnames.family_names)
-
+NCMCAuthorities::Export.export_matches('family')
 
 # Corporate names use a corpus of trigrams. So, we're not comparing one name
 # against another name in isolation, the comparison takes into account the
@@ -93,44 +62,24 @@ NCMCAuthorities::Names::Corporate.solr.add_docs(
 # write test results for corporate names
 # (unknown-type names are included in the results for each corporate name when
 #   applicable, but we're not writing results for each unknown-type name)
-test_results(corporate)
-
+# (The command below includes adding the corporate/unknown docs to solr. We
+# didn't need to do that separately above; nor will doing it above cause any
+# problems with the below.)
+NCMCAuthorities::Export.export_matches('corporate')
 
 # like corporate names, this uses a trigram corpus (but a separate corpus / solr collection)
 meeting = allnames.meeting_names
 NCMCAuthorities::Names::Meeting.solr.add_docs(
   meeting, unknown.map(&:meeting)
 )
-test_results(meeting)
-
+NCMCAuthorities::Export.export_matches('meeting')
 
 # Unknown-type names
-
+#
 # We want to compare these against all of the other names.
 # So we take the name as a personal name and compare it as a personal name against
 #   personal names and other unknown names.
 # Then we take it as a corporate name and compare it as a corporate name against
 #   corporate names and other unknown names...
 # ...same thing for family and meeting names.
-
-# we've already imported unknown names in the above
-#   unknown = NCMCAuthorities::Import::SubmittedNameGetter.new(type_limit: 'unknown').names
-
-# we've also included those in the Corporate and Meeting corpora. Had we not, we would
-# need to do that here.
-test_results(unknown)
-
-
-
-names = allnames.names
-names.count
-
-# Submitted names w/unique normalized form
-names.reject { |n| n.ranking&.first&.category == :strong }.count
-
-# Submitted names w/non-unique normalized form
-names.select { |n| n.ranking&.first&.category == :strong }.count
-
-# Normalized name forms that cluster multiple submitted names
-names.reduce(0) { |sum, n| sum + n.unique_name_form_percent }
-
+NCMCAuthorities::Export.export_matches('unknown_type')

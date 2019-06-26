@@ -22,7 +22,19 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+See `lib/ncmc_authorities/demo.rb`.
+
+For corporate/meeting name matching, a local instance of solr listening on port 9983 is expected, and the solr instance is expected to have `corporate` and `meeting` collections already present.
+
+There's
+a vagrant box that includes solr, but it's not set to automatically start solr or create those collections. The following is sufficient:
+```bash
+solr start
+solr create_core -c corporate
+solr create_core -c meeting
+```
+
+(You'd then run these scripts on the host machine, where port 9983 will forward to solr at vagrant guest's port 8983.)
 
 ## Development
 

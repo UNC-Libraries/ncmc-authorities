@@ -44,8 +44,9 @@ module NCMCAuthorities
 
       def ranking(doc)
         find_matches(doc).normalized_scores.map do |x|
-          NCMCAuthorities::Matching::Match.new(
-            doc, @corpus[x.last.to_i], x.first
+          score = x.first
+          NCMCAuthorities::Match.new(
+            doc, @corpus[x.last.to_i], score, {solr_trigrams: {score: score}}
           )
         end
       end

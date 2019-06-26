@@ -1,5 +1,5 @@
 module NCMCAuthorities
-  module Trigram
+  module NCMCTrigram
     # Returns an array of trigrams from given string.
     #
     #  The trigrams are:
@@ -12,7 +12,7 @@ module NCMCAuthorities
     #  (per: https://ii.nlm.nih.gov/MTI/Details/trigram.shtml)
     #
     # example:
-    # 	name: American Home Foods
+    #   name: American Home Foods
     #   trigrams: ["ame", "mer", "eri", "ric", "ica", "can",
     #              "ame!", "ame!", "a#",
     #              "hom", "ome",
@@ -38,12 +38,12 @@ module NCMCAuthorities
       trigrams(norm_name).map { |t| t.tr(' ', '_') }.join(' ')
     end
 
-    def trigrams(norm_name)
-      Trigram.trigrams(norm_name)
+    def trigrams
+      NCMCTrigram.trigrams(norm_name)
     end
 
     def solr_trigram_string
-      Trigram.solr_trigram_string(norm_name)
+      NCMCTrigram.solr_trigram_string(norm_name)
     end
   end
 end

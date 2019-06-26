@@ -10,7 +10,7 @@ module NCMCAuthorities
         'meeting'
       end
 
-      def cluster_keys
+      def block_keys
         [:all_meeting]
       end
     end

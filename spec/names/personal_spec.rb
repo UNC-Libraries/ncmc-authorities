@@ -16,9 +16,25 @@ module NCMCAuthorities
             forename_initials: 'je',
             forename_variant: 'james elliott',
             initials: 'fje',
-            supplemental: '',
+            supplemental: nil,
             surname: 'ferguson',
             variant_initials: 'je'
+          }
+          expect(name.parsed_name).to eq(expected)
+        end
+
+        it 'returns hash of name components' do
+          name_string = 'Ferguson, James E.'
+          name = quick_name(name_string)
+          expected = {
+            dates: [],
+            forename: 'james e',
+            forename_initials: 'je',
+            forename_variant: nil,
+            initials: 'fje',
+            supplemental: nil,
+            surname: 'ferguson',
+            variant_initials: nil
           }
           expect(name.parsed_name).to eq(expected)
         end

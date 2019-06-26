@@ -16,7 +16,10 @@ module NCMCAuthorities
   require_relative 'ncmc_authorities/solr.rb'
   require_relative 'ncmc_authorities/trigram.rb'
 
-  require_relative 'ncmc_authorities/matching'
+  require_relative 'ncmc_authorities/block'
+  require_relative 'ncmc_authorities/match'
+  require_relative 'ncmc_authorities/string_comparator'
+
   require_relative 'ncmc_authorities/names'
 
   require_relative 'ncmc_authorities/import'

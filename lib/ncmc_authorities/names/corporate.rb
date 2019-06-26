@@ -1,7 +1,7 @@
 module NCMCAuthorities
   module Names
     class Corporate < SubmittedName
-      include NCMCAuthorities::Trigram
+      include NCMCAuthorities::NCMCTrigram
 
       attr_accessor :model_index
 
@@ -27,24 +27,21 @@ module NCMCAuthorities
           strip
       end
 
-      def trigrams
-        Matching::TrigramMatrix.trigrams(norm_name)
-      end
-
-      def cluster_keys
+      def block_keys
         [:all_corporate]
       end
 
-      def self.cluster(submitted_name)
-        submitted_name.cluster_keys.each do |key|
-          cluster = cluster_hash[key] || cluster_hash.add(key)
-          cluster.members << submitted_name unless cluster.members.include? submitted_name
+      # add name to a block of similar names
+      def self.block(submitted_name)
+        submitted_name.block_keys.each do |key|
+          block = block_hash[key] || block_hash.add(key)
+          block.members << submitted_name unless block.members.include? submitted_name
         end
         nil
       end
 
-      def self.cluster_hash
-        @cluster_hash ||= ClusterHash.new
+      def self.block_hash
+        @block_hash ||= BlockHash.new
       end
 
       def self.type

@@ -1,7 +1,7 @@
 require 'set'
 
 module NCMCAuthorities
-  class Cluster
+  class Block
     attr_reader :key, :members
 
     def initialize(key)
@@ -14,9 +14,9 @@ module NCMCAuthorities
     end
   end
 
-  class ClusterHash < Hash
+  class BlockHash < Hash
     def add(key)
-      self[key] = Cluster.new(key)
+      self[key] = Block.new(key)
     end
 
     def key_lengths

@@ -12,7 +12,7 @@ module NCMCAuthorities
       end
 
       def self.dates(name)
-        normalize_name(name).scan(/[0-9]{3,}/)
+        name.scan(/[0-9]{3,}/)
       end
 
       def self.initials(name)
@@ -27,9 +27,12 @@ module NCMCAuthorities
         variant = name.
                   scan(/\(([^)]*)\)/).
                   join(' ')
-        normalize_name(variant).
-          gsub(/\s+/, ' ').
-          strip
+        variant = normalize_name(variant).
+                  gsub(/\s+/, ' ').
+                  strip
+        return if variant == ''
+
+        variant
       end
 
       def self.remove_variants(name)
@@ -42,10 +45,14 @@ module NCMCAuthorities
       end
 
       def surnames
+        return [] unless surname
+
         surname.split(' ')
       end
 
       def forenames
+        return [] unless forename
+
         forename.split(' ')
       end
 
@@ -55,6 +62,12 @@ module NCMCAuthorities
 
       def forename
         parsed_name[:forename]
+      end
+
+      # content extracted from parenthetical "fuller form of name added as a
+      # qualifier"
+      def variant_forename
+        parsed_name[:forename_variant]
       end
 
       def basename
@@ -81,33 +94,36 @@ module NCMCAuthorities
         parsed_name[:variant_initials]
       end
 
-      def cluster_keys
-        self.class.cluster_keys(surnames)
+      def block_keys
+        self.class.block_keys(surnames)
       end
 
-      def self.cluster_keys(surnames)
+      def self.block_keys(surnames)
         surnames.map { |n| Text::Soundex.soundex(n) }
       end
 
-      def self.cluster(submitted_name)
-        clusts = cluster_keys(submitted_name.surnames).
-                 map { |sdx| cluster_hash[sdx] || cluster_hash.add(sdx) }
+      # add name to a block of similar names
+      def self.block(submitted_name)
+        clusts = block_keys(submitted_name.surnames).
+                 map { |sdx| block_hash[sdx] || block_hash.add(sdx) }
         clusts.each { |c| c.members << submitted_name unless c.members.include? submitted_name }
         nil
       end
 
-      def self.cluster_hash
-        @cluster_hash ||= ClusterHash.new
+      def self.block_hash
+        @block_hash ||= BlockHash.new
       end
 
       def self.parse(name)
         surname, forename, *supplemental = name.split(',')
+
         supplemental = normalize_name(supplemental.join(','))
+        supplemental = nil if supplemental == ''
+
         surname = normalize_name(surname)
 
         forename_variant = normalize_name(forename_variant(forename))
-        forename = remove_variants(forename)
-        forename = normalize_name(forename)
+        forename = normalize_name(remove_variants(forename))
 
         dates = dates(name)
 
